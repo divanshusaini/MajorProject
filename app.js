@@ -52,6 +52,9 @@ const store =MongoStore.create({
 
 })
 
+
+
+
 store.on("error",()=>{
   console.log("error in mongo session store",err);
   
@@ -86,6 +89,10 @@ res.locals.error=req.flash("error");
 res.locals.currentUser=req.user;
 
 next();
+});
+app.use((req, res, next) => {
+  res.locals.currentUser = req.user || null; // Use req.session.user if you're storing user in session
+  next();
 });
 
 
