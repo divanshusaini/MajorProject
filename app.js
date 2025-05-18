@@ -1,6 +1,5 @@
 if(process.env.NODE_ENV != "production"){
 require('dotenv').config();
-
 }
 
 const express = require("express");
@@ -48,16 +47,10 @@ const store =MongoStore.create({
     secret:process.env.SECRET,
   },
   touchAfter:24*3600,
-  
-
 })
-
-
-
 
 store.on("error",()=>{
   console.log("error in mongo session store",err);
-  
 })
 
 const sessionOptions = {
@@ -70,8 +63,8 @@ const sessionOptions = {
     maxAge:1000*60*60*24*7,
     httpOnly:true
   }
-
 };
+
 app.use(session(sessionOptions));
 app.use(flash());
 
@@ -82,45 +75,26 @@ passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-
-app.use((req,res,next)=>{
-res.locals.success=req.flash("success");
-res.locals.error=req.flash("error");
-res.locals.currentUser=req.user;
-
-next();
-});
+// Modified middleware - removed duplicate and added null check
 app.use((req, res, next) => {
-  res.locals.currentUser = req.user || null; // Use req.session.user if you're storing user in session
+  res.locals.success = req.flash("success");
+  res.locals.error = req.flash("error");
+  res.locals.currentUser = req.user || null; // Explicit null handling
   next();
 });
-
-
 
 app.use("/listings",listingRouter);
 app.use("/listings/:id/reviews",reviewRouter);
 app.use("/",userRouter);
 
-
-
-
-// app.get("/",(req,res)=>{
-//   res.send("Hi,I am root");
-// });
-
-
-
 app.use((req, res, next) => {
   next(new ExpressError(404, "Page Not Found!"));
 });
 
-
 app.use((err,req,res,next)=>{
   let {statusCode= 500,message="something went Wrong!"} = err;
   res.status(statusCode).render("listing/error.ejs",{message});
-// res.status(statusCode).send(message);
 });
-
 
 app.listen(8080,()=>{
     console.log("server is listining to port 8080");
